@@ -58,6 +58,7 @@ config:
       logs:
         exporters:
           - debug
+          # add logging element | this allowed for tempo to recieve traces
           - logging
         processors:
           - memory_limiter
@@ -80,6 +81,7 @@ config:
           - memory_limiter
           - batch
         receivers:
+          # add otlp element
           - otlp
 
 image:
