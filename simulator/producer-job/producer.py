@@ -5,13 +5,14 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 
-service_name = "Random-Trace-Producer"
+service_name = "producer-service"
 
 resource = Resource(attributes={
     SERVICE_NAME: service_name
 })
 
 trace.set_tracer_provider(TracerProvider(resource=resource))
+
 otlp_exporter = OTLPSpanExporter(endpoint=f'{os.getenv("OTLP_ENDPOINT", "http://localhost:56290")}/v1/traces')
 trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(otlp_exporter))
 tracer = trace.get_tracer(__name__)
