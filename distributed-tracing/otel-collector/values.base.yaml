@@ -1,0 +1,153 @@
+nameOverride: ""
+fullnameOverride: ""
+
+mode: "daemonset"
+
+namespaceOverride: ""
+
+presets:
+  logsCollection:
+    enabled: false
+    includeCollectorLogs: false
+    storeCheckpoints: false
+    maxRecombineLogSize: 102400
+  hostMetrics:
+    enabled: false
+  kubernetesAttributes:
+    enabled: false
+    extractAllPodLabels: false
+    extractAllPodAnnotations: false
+  kubeletMetrics:
+    enabled: false
+  kubernetesEvents:
+    enabled: false
+  clusterMetrics:
+    enabled: false
+
+configMap:
+  create: true
+
+# otel helm values
+config:
+  exporters:
+    debug: 
+      verbosity: detailed
+    logging: {}
+    otlphttp:
+      endpoint: http://tempo.tempo.svc.cluster.local:4318
+  extensions:
+    health_check:
+      endpoint: ${env:MY_POD_IP}:13133
+    memory_ballast: {}
+  processors:
+    batch: {}
+    memory_limiter: null
+  receivers:
+    otlp:
+      protocols:
+        http:
+          endpoint: ${env:MY_POD_IP}:4318
+  service:
+    telemetry:
+      metrics:
+        address: ${env:MY_POD_IP}:8888
+    extensions:
+      - health_check
+      - memory_ballast
+    pipelines:
+      logs:
+        exporters:
+          - debug
+          - logging
+        processors:
+          - memory_limiter
+          - batch
+        receivers:
+          - otlp
+      metrics:
+        exporters:
+          - debug
+        processors:
+          - memory_limiter
+          - batch
+        receivers:
+          - otlp
+      traces:
+        exporters:
+          - otlphttp
+          - debug
+        processors:
+          - memory_limiter
+          - batch
+        receivers:
+          - otlp
+
+image:
+  repository: otel/opentelemetry-collector-contrib
+  pullPolicy: IfNotPresent
+  tag: ""
+  digest: ""
+
+command:
+  name: otelcol-contrib
+
+serviceAccount:
+  create: true
+  name: ""
+
+clusterRole:
+  create: false
+
+  clusterRoleBinding:
+    name: ""
+
+priorityClassName: ""
+
+ports:
+  otlp-http:
+    enabled: true
+    containerPort: 4318
+    servicePort: 4318
+    hostPort: 4318
+    protocol: TCP
+
+replicaCount: 1
+
+revisionHistoryLimit: 10
+
+livenessProbe:
+  httpGet:
+    port: 13133
+    path: /
+
+readinessProbe:
+  httpGet:
+    port: 13133
+    path: /
+
+service:
+  enabled: true
+  type: ClusterIP
+
+ingress:
+  enabled: false
+
+podMonitor:
+  enabled: false
+
+serviceMonitor:
+  enabled: false
+  metricsEndpoints:
+    - port: metrics
+
+autoscaling:
+  enabled: false
+
+statefulset:
+  volumeClaimTemplates: []
+  podManagementPolicy: "Parallel"
+
+networkPolicy:
+  enabled: false
+
+useGOMEMLIMIT: false

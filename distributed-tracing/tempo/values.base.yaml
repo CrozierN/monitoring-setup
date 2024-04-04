@@ -1,0 +1,91 @@
+nameOverride: ""
+
+fullnameOverride: ""
+
+replicas: 1
+
+annotations: {}
+
+tempo:
+  repository: grafana/tempo
+  pullPolicy: IfNotPresent
+
+  updateStrategy: RollingUpdate
+
+  memBallastSizeMbs: 1024
+  multitenancyEnabled: false
+  reportingEnabled: true
+  metricsGenerator:
+    enabled: false
+    remoteWriteUrl: "http://prometheus.monitoring:9090/api/v1/write"
+  # ingester: {}
+  # querier: {}
+  # queryFrontend: {}
+  retention: 24h
+  global_overrides:
+    per_tenant_override_config: /conf/overrides.yaml
+
+  server:
+    http_listen_port: 3100
+  storage:
+    trace:
+      backend: local
+      local:
+        path: /var/tempo/traces
+      wal:
+        path: /var/tempo/wal
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: "0.0.0.0:4317"
+        http:
+          endpoint: "0.0.0.0:4318"
+
+config: |
+    multitenancy_enabled: {{ .Values.tempo.multitenancyEnabled }}
+    usage_report:
+      reporting_enabled: {{ .Values.tempo.reportingEnabled }}
+    compactor:
+      compaction:
+        block_retention: {{ .Values.tempo.retention }}
+    distributor:
+      receivers:
+        {{- toYaml .Values.tempo.receivers | nindent 8 }}
+    ingester:
+      {{- toYaml .Values.tempo.ingester | nindent 6 }}
+    server:
+      {{- toYaml .Values.tempo.server | nindent 6 }}
+    storage:
+      {{- toYaml .Values.tempo.storage | nindent 6 }}
+    querier:
+      {{- toYaml .Values.tempo.querier | nindent 6 }}
+    query_frontend:
+      {{- toYaml .Values.tempo.queryFrontend | nindent 6 }}
+    overrides:
+      {{- toYaml .Values.tempo.global_overrides | nindent 6 }}
+      {{- if .Values.tempo.metricsGenerator.enabled }}
+          metrics_generator_processors:
+          - 'service-graphs'
+          - 'span-metrics'
+    metrics_generator:
+          storage:
+            path: "/tmp/tempo"
+            remote_write:
+              - url: {{ .Values.tempo.metricsGenerator.remoteWriteUrl }}
+      {{- end }}
+
+serviceAccount:
+  create: true
+  name: null
+  automountServiceAccountToken: true
+
+service:
+  type: ClusterIP
+  annotations: {}
+  labels: {}
+
+persistence:
+  enabled: false
+  accessModes:
+  size: 2Gi

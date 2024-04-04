@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-producer
+  namespace: mg-producer
+spec:
+  selector:
+    matchLabels:
+      app: otel-producer
+  template:
+    metadata:
+      labels:
+        app: otel-producer
+    spec:
+      containers:
+      - name: otel-producer
+        image: croziernn/trace-producer:0.0.5
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        env:
+        - name: OTLP_ENDPOINT
+          value: http://otel-collector-opentelemetry-collector.otel.svc.cluster.local:4318
