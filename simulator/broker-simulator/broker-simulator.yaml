@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name:  trace-broker
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-broker-simulator
+  namespace: trace-broker
+spec:
+  selector:
+    matchLabels:
+      app: otel-broker-simulator
+  template:
+    metadata:
+      labels:
+        app: otel-broker-simulator
+    spec:
+      containers:
+      - name: otel-broker-simulator
+        image: croziernn/trace-broker-simulator:0.0.1
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 5000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-broker-simulator-svc
+  namespace: trace-broker
+spec:
+  selector:
+    app: otel-broker-simulator
+  ports:
+  - port: 5000
+    targetPort: 5000

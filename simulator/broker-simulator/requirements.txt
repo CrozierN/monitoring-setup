@@ -1,0 +1,4 @@
+Flask==3.0.2
+opentelemetry-api==1.23.0 
+opentelemetry-sdk==1.23.0
+opentelemetry-exporter-otlp-proto-http==1.23.0
