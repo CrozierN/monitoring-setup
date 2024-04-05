@@ -5,6 +5,7 @@ WORKDIR /usr/src/app
 COPY . .
 
 ENV OTLP_ENDPOINT="http://localhost:4318"
+ENV BROKER_ENDPOINT="http://localhost:5000"
 
 RUN pip install --no-cache-dir -r requirements.txt
 
